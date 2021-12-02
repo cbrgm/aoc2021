@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -34,21 +35,29 @@ func readInputFile(file *os.File) ([]Command, error) {
 	scanner := bufio.NewScanner(file)
 	var commands []Command
 	for scanner.Scan() {
-		if scanner.Text() != "" {
-			command := strings.Split(scanner.Text(), " ")
-			name := command[0]
-			value, err := strconv.Atoi(command[1])
-			if err != nil {
-				return nil, err
-			}
-
-			commands = append(commands, Command{
-				name:  name,
-				value: value,
-			})
+		c, err := parseCommandFromString(scanner.Text())
+		if err != nil {
+			return nil, err
 		}
+		commands = append(commands, c)
 	}
 	return commands, nil
+}
+
+func parseCommandFromString(s string) (Command, error) {
+	if s == "" {
+		return Command{}, errors.New("empty string")
+	}
+	command := strings.Split(s, " ")
+	name := command[0]
+	value, err := strconv.Atoi(command[1])
+	if err != nil {
+		return Command{}, err
+	}
+	return Command{
+		name:  name,
+		value: value,
+	}, nil
 }
 
 func main() {
@@ -79,6 +88,6 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Result: %v", (currentPos.horizontalPos*currentPos.depth) * -1)
+	fmt.Printf("Result: %v", (currentPos.horizontalPos*currentPos.depth)*-1)
 
 }
